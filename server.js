@@ -38,17 +38,49 @@ server.use(logger("dev"));
  * Database object modelling
  * https://www.npmjs.com/package/mongoose
  */
-const mongoose = require("mongoose");
+//const mongoose = require("mongoose");
 // Connect to the Mongo database
-mongoose.Promise = global.Promise;
-mongoose.connect("mongodb://localhost/hex", { useNewUrlParser: true });
+//mongoose.Promise = global.Promise;
+//mongoose.connect(process.env.MONGO_CONN, { useNewUrlParser: true });
+
+// set port, listen for requests
+const PORT = process.env.PORT || 5556;
+server.listen(PORT, () => {
+       console.log(`Server is running on port ${PORT}.`);
+});
+
+const mongoose = require("mongoose");
+//const { application } = require("express");
+
+// Get MongoDB connection string
+require("dotenv").config();
+var uri = process.env.MONGO_CONN;
+
+// Connect to MongoDB
+mongoose.connect(uri, {
+       useUnifiedTopology: true,
+       useNewUrlParser: true,
+});
+
+const connection = mongoose.connection;
+
+connection.once("open", function () {
+       console.log("MongoDB database connection established successfully.");
+});
+
 // Set up the routes
 // -----------------
-const apiRoutes = require("./src/routes/api-routes");
-server.use("/api", apiRoutes);
+
+const urlVersioning = "v1";
+const hospitalRoutes = require("./src/routes/hospital-routes");
+//server.use("/api/" + urlVersioning.toString() + "/hospitals", hospitalRoutes);
+server.use("/hospitals", hospitalRoutes);
+
+////const apiRoutes = require("./src/routes/api-routes");
+//server.use("/api", apiRoutes);
 // Handle errors
 // -------------
-const errorHandlers = require("./src/middleware/error-handlers");
+const errorHandlers = require("./src/middleware/error_handler");
 // Catch all invalid routes
 server.use(errorHandlers.invalidRoute);
 // Handle mongoose errors
