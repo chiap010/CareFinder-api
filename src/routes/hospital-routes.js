@@ -10,4 +10,6 @@ router.delete("/", catchErrors(hospitalController.remove));
 
 router.post("/", catchErrors(hospitalController.post));
 
+router.put("/", catchErrors(hospitalController.put));
+
 module.exports = router;

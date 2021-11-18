@@ -146,76 +146,6 @@ exports.remove = async (req, res) => {
        }
 };
 
-exports.read = async (req, res) => {
-       let isValidKey = await isValidAPIKey(req);
-       let permissionLevel = await getPermissionLevel(req);
-
-       if (
-              isValidKey &&
-              (permissionLevel === "USER" || permissionLevel === "ADMIN")
-       ) {
-              let searchObject = {};
-
-              if (req.query.providerId) {
-                     searchObject.provider_id = {
-                            $regex: req.query.providerId,
-                            $options: "i",
-                     };
-              }
-
-              if (req.query.name) {
-                     searchObject.hospital_name = req.query.name;
-              }
-
-              if (req.query.city) {
-                     searchObject.city = {
-                            $regex: req.query.city,
-                            $options: "i",
-                     };
-              }
-
-              if (req.query.state) {
-                     searchObject.state = {
-                            $regex: req.query.state,
-                            $options: "i",
-                     };
-              }
-
-              if (req.query.zipCode) {
-                     searchObject.zip_code = {
-                            $regex: req.query.zipCode,
-                            $options: "i",
-                     };
-              }
-
-              if (req.query.county) {
-                     searchObject.county_name = {
-                            $regex: req.query.county,
-                            $options: "i",
-                     };
-              }
-
-              if (req.query.emergency) {
-                     searchObject.emergency_services = {
-                            $regex: req.query.emergency,
-                            $options: "i",
-                     };
-              }
-
-              const hospitals = await Hospital.find(searchObject).exec();
-
-              if (hospitals && hospitals.length > 0) {
-                     res.status(200).json({ data: hospitals });
-              } else if (hospitals && hospitals.length === 0) {
-                     res.status(404).json({ error: "Resource Not Found" });
-              } else {
-                     res.status(400).json({ error: "Bad Request" });
-              }
-       } else {
-              res.status(401).json({ error: "Not authenticated" });
-       }
-};
-
 exports.post = async (req, res) => {
        let isValidKey = await isValidAPIKey(req);
        let permissionLevel = await getPermissionLevel(req);
@@ -242,8 +172,39 @@ exports.post = async (req, res) => {
                             const savedPost = await post.save();
                             res.json(savedPost);
                      } catch (err) {
-                            res.status(400).json(err);
+                            res.status(400).json({ error: "Bad Request" });
                      }
+              } else {
+                     res.status(400).json({ error: "Bad Request" });
               }
+       }
+};
+
+exports.put = async (req, res) => {
+       let isValidKey = await isValidAPIKey(req);
+       let permissionLevel = await getPermissionLevel(req);
+
+       if (isValidKey && permissionLevel === "ADMIN") {
+              if (req.query.providerId) {
+                     // Looks like upsert = true will do the create or update
+                     const hospitals = await Hospital.findOneAndUpdate(
+                            {
+                                   provider_id: req.query.providerId,
+                            },
+                            {
+                                   $set: req.body,
+                            },
+                            {
+                                   upsert: true,
+                                   new: true,
+                            }
+                     ).exec();
+
+                     res.status(200).json({ data: hospitals });
+              } else {
+                     res.status(400).json({ error: "Bad Request" });
+              }
+       } else {
+              res.status(401).json({ error: "Not authenticated" });
        }
 };
