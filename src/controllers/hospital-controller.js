@@ -58,6 +58,47 @@ exports.read = async (req, res) => {
                      };
               }
 
+              if (req.query.lat && req.query.lon && req.query.dist) {
+                     const factor = 1609;
+                     const distanceInMeters =
+                            parseFloat(req.query.dist) * parseFloat(factor);
+
+                     // We need our distance value to meters from a miles value inputted through the query string.
+                     // MongoDB $near queries require the distance in meters.
+                     const hospitals = await Hospital.find({
+                            geoloc: {
+                                   $near: {
+                                          $geometry: {
+                                                 type: "Point",
+                                                 coordinates: [
+                                                        req.query.lon,
+                                                        req.query.lat,
+                                                 ],
+                                          },
+                                          $maxDistance: distanceInMeters,
+                                   },
+                            },
+                     }).exec();
+
+                     if (hospitals && hospitals.length > 0) {
+                            res.status(200).json({
+                                   data: hospitals,
+                            });
+                     } else if (hospitals && hospitals.length === 0) {
+                            res.status(404).json({
+                                   data: {
+                                          error: "",
+                                   },
+                            });
+                     } else {
+                            res.status(400).json({
+                                   data: {
+                                          error: "",
+                                   },
+                            });
+                     }
+              }
+
               const hospitals = await Hospital.find(searchObject).exec();
 
               if (hospitals && hospitals.length > 0) {

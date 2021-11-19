@@ -74,7 +74,9 @@ connection.once("open", function () {
 const urlVersioning = "v1";
 const hospitalRoutes = require("./src/routes/hospital-routes");
 server.use("/api/" + urlVersioning.toString() + "/hospitals", hospitalRoutes);
-//server.use("/hospitals", hospitalRoutes);
+
+const userRoutes = require("./src/routes/user-routes");
+server.use("/api/" + urlVersioning.toString() + "/apikeys", userRoutes);
 
 ////const apiRoutes = require("./src/routes/api-routes");
 //server.use("/api", apiRoutes);
