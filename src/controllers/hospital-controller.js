@@ -2,6 +2,7 @@ const Hospital = require("../models/hospital-model");
 const isValidAPIKey = require("../middleware/isValidAPIKey");
 const getPermissionLevel = require("../middleware/getPermissionLevel");
 const resources = require("../helpers/resources");
+const getSearchObject = require("../helpers/getSearchObject");
 
 // Handle hospital HTTP GET
 exports.read = async (req, res) => {
@@ -14,93 +15,9 @@ exports.read = async (req, res) => {
               isValidKey &&
               (permissionLevel === "USER" || permissionLevel === "ADMIN")
        ) {
-              // Declare a search object that we will build upon depending
-              // on what we see in the query string.
+              // Construct the search object.  I have a function to parse the request passed into the function
               let searchObject = {};
-
-              // $option: "i" means that we're matching strings, but case sensitively does NOT matter.
-              // Wanted to make the server more flexible for when a client makes requests
-
-              // If providerId is in the query string, add it to the search object
-              if (req.query.providerId) {
-                     searchObject.provider_id = {
-                            $regex: req.query.providerId,
-                            $options: "i",
-                     };
-              }
-
-              // If hospital nameis in the query string, add it to the search object
-              if (req.query.name) {
-                     searchObject.hospital_name = {
-                            $regex: req.query.name,
-                            $options: "i",
-                     };
-              }
-
-              // If city name is in the query string, add it to the search object
-              if (req.query.city) {
-                     searchObject.city = {
-                            $regex: req.query.city,
-                            $options: "i",
-                     };
-              }
-
-              // If state is in the query string, add it to the search object
-              if (req.query.state) {
-                     searchObject.state = {
-                            $regex: req.query.state,
-                            $options: "i",
-                     };
-              }
-
-              // If zip code is in the query string, add it to the search object
-              if (req.query.zipCode) {
-                     searchObject.zip_code = {
-                            $regex: req.query.zipCode,
-                            $options: "i",
-                     };
-              }
-
-              // If county is in the query string, add it to the search object
-              if (req.query.county) {
-                     searchObject.county_name = {
-                            $regex: req.query.county,
-                            $options: "i",
-                     };
-              }
-
-              // If emergency services is in the query string, add it to the search object
-              if (req.query.emergency) {
-                     searchObject.emergency_services = {
-                            $regex: req.query.emergency,
-                            $options: "i",
-                     };
-              }
-
-              // If latitude, longitude, and distance is in the query string, add it to the search object
-              if (req.query.lat && req.query.lon && req.query.dist) {
-                     // MongoDB wants our distance in meters.  The assignment has us passing in the miles.
-                     // We have to do a conversion from miles to meters.
-                     const factor = 1609;
-                     const distanceInMeters =
-                            parseFloat(req.query.dist) * parseFloat(factor);
-
-                     // We need our distance value to meters from a miles value inputted through the query string.
-                     // MongoDB $near queries require the distance in meters.
-                     // https://docs.mongodb.com/manual/reference/operator/query/near/
-                     searchObject.geoloc = {
-                            $near: {
-                                   $geometry: {
-                                          type: "Point",
-                                          coordinates: [
-                                                 req.query.lon,
-                                                 req.query.lat,
-                                          ],
-                                   },
-                                   $maxDistance: distanceInMeters,
-                            },
-                     };
-              }
+              searchObject = await getSearchObject(req);
 
               // Finally, we're ready to run our find against MongoDB, passing in our searchObject
               // we have been constructing.  Execute the command.
@@ -137,75 +54,24 @@ exports.read = async (req, res) => {
 
 // Handle hospital HTTP DELETE
 exports.remove = async (req, res) => {
+       // Check to see if the API key is valid and grab the permission level
        let isValidKey = await isValidAPIKey(req);
        let permissionLevel = await getPermissionLevel(req);
 
+       // Validate the API key.  Also the user must have administrative permissions
+       // to proceed with the request to delete.
        if (isValidKey && permissionLevel === "ADMIN") {
+              // Construct the search object.  I have a function to parse the request passed into the function
               let searchObject = {};
+              searchObject = await getSearchObject(req);
 
-              if (req.query.providerId) {
-                     searchObject.provider_id = {
-                            $regex: req.query.providerId,
-                            $options: "i",
-                     };
-              }
-
-              if (req.query.name) {
-                     searchObject.hospital_name = req.query.name;
-              }
-
-              if (req.query.city) {
-                     searchObject.city = {
-                            $regex: req.query.city,
-                            $options: "i",
-                     };
-              }
-
-              if (req.query.state) {
-                     searchObject.state = {
-                            $regex: req.query.state,
-                            $options: "i",
-                     };
-              }
-
-              if (req.query.zipCode) {
-                     searchObject.zip_code = {
-                            $regex: req.query.zipCode,
-                            $options: "i",
-                     };
-              }
-
-              if (req.query.county) {
-                     searchObject.county_name = {
-                            $regex: req.query.county,
-                            $options: "i",
-                     };
-              }
-
-              if (req.query.emergency) {
-                     searchObject.emergency_services = {
-                            $regex: req.query.emergency,
-                            $options: "i",
-                     };
-              }
-
-              if (req.query.type) {
-                     searchObject.hospital_type = {
-                            $regex: req.query.type,
-                            $options: "i",
-                     };
-              }
-
-              if (req.query.ownership) {
-                     searchObject.hospital_ownership = {
-                            $regex: req.query.ownership,
-                            $options: "i",
-                     };
-              }
-
+              // With the search object, delete those hospitals matching the search criteria.
               const hospitals = await Hospital.deleteMany(searchObject).exec();
               res.status(resources.httpCodeOK).json({ data: hospitals });
-       } else {
+       }
+       // If the user isn't authenticated or doesn't have the correct admin permission,
+       // return to the client that they aren't authorized.
+       else {
               res.status(resources.httpCodeUnauthorized).json({
                      error: resources.httpStringUnauthorized,
               });
@@ -214,9 +80,12 @@ exports.remove = async (req, res) => {
 
 // Handle hospital HTTP POST
 exports.post = async (req, res) => {
+       // Check to see if the API key is valid and grab the permission level
        let isValidKey = await isValidAPIKey(req);
        let permissionLevel = await getPermissionLevel(req);
 
+       // Validate the API key.  Also the user must have administrative permissions
+       // to proceed with the request to save.
        if (isValidKey && permissionLevel === "ADMIN") {
               // Only if query string is empty for the POST, then do something.
               if (Object.keys(req.query).length === 0) {
@@ -235,27 +104,42 @@ exports.post = async (req, res) => {
                             latitude: req.body.latitude,
                             longitude: req.body.longitude,
                      });
+
+                     // Try saving post to MongoDB.  Otherwise, return a bad request.
                      try {
                             const savedPost = await post.save();
-                            res.json(savedPost);
+                            res.status(resources.httpCodeOK).json(savedPost);
                      } catch (err) {
                             res.status(resources.httpCodeBadRequest).json({
                                    error: resources.httpStringBadRequest,
                             });
                      }
-              } else {
+              }
+              // If there is a POST to an endpoint with a query string, I'm going to call it a
+              // bad request, because only POST is explicitly defined for /hospitals without the query string.
+              else {
                      res.status(resources.httpCodeBadRequest).json({
                             error: resources.httpStringBadRequest,
                      });
               }
        }
+       // If the user isn't authenticated or doesn't have the correct admin permission,
+       // return to the client that they aren't authorized.
+       else {
+              res.status(resource.httpCodeUnauthorized).json({
+                     error: resources.httpStringUnauthorized,
+              });
+       }
 };
 
 // Handle hospital HTTP PUT
 exports.put = async (req, res) => {
+       // Check to see if the API key is valid and grab the permission level
        let isValidKey = await isValidAPIKey(req);
        let permissionLevel = await getPermissionLevel(req);
 
+       // Validate the API key.  Also the user must have administrative permissions
+       // to proceed with the request to put.
        if (isValidKey && permissionLevel === "ADMIN") {
               if (req.query.providerId) {
                      // Looks like upsert = true will do the create or update
@@ -272,13 +156,17 @@ exports.put = async (req, res) => {
                             }
                      ).exec();
 
+                     // If successful, return the data from the PUT.
                      res.status(resources.httpCodeOK).json({ data: hospitals });
               } else {
                      res.status(resources.httpCodeBadRequest).json({
                             error: resources.httpStringBadRequest,
                      });
               }
-       } else {
+       }
+       // If the user isn't authenticated or doesn't have the correct admin permission,
+       // return to the client that they aren't authorized.
+       else {
               res.status(resource.httpCodeUnauthorized).json({
                      error: resources.httpStringUnauthorized,
               });
