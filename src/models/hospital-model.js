@@ -20,8 +20,9 @@ const hospitalSchema = new schema({
        human_address: { type: String, trim: true },
        latitude: { type: Number },
        longitude: { type: Number },
+       needs_recoding: { type: String, trim: true },
 });
 
 const sch = new mongoose.Schema(hospitalSchema, schemaOptions);
 
-module.exports = mongoose.model("Hospital", sch);
+module.exports = mongoose.model("Hospitals", sch);

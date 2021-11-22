@@ -3,7 +3,7 @@ module.exports = async function (req) {
        // on what we see in the query string.
        let searchObject = {};
 
-       // $option: "i" means that we're matching strings, but case sensitively does NOT matter.
+       // $option: "i" means that we're matching strings, but case sensitivity does NOT matter.
        // Wanted to make the server more flexible for when a client makes requests
 
        // If providerId is in the query string, add it to the search object
