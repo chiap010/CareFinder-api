@@ -98,9 +98,9 @@ exports.post = async (req, res) => {
               if (Object.keys(req.query).length === 0) {
                      const apiKeyToUse = apikey();
                      const post = new User({
-                            username: "chiap010",
+                            username: req.body.username,
                             api_key: apiKeyToUse,
-                            permission: "ADMIN",
+                            permission: req.body.permission,
                             createdTs: Date.now,
                      });
 
