@@ -126,7 +126,7 @@ exports.post = async (req, res) => {
        // If the user isn't authenticated or doesn't have the correct admin permission,
        // return to the client that they aren't authorized.
        else {
-              res.status(resource.httpCodeUnauthorized).json({
+              res.status(resources.httpCodeUnauthorized).json({
                      error: resources.httpStringUnauthorized,
               });
        }
@@ -167,7 +167,7 @@ exports.put = async (req, res) => {
        // If the user isn't authenticated or doesn't have the correct admin permission,
        // return to the client that they aren't authorized.
        else {
-              res.status(resource.httpCodeUnauthorized).json({
+              res.status(resources.httpCodeUnauthorized).json({
                      error: resources.httpStringUnauthorized,
               });
        }

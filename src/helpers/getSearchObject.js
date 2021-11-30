@@ -62,6 +62,14 @@ module.exports = async function (req) {
               };
        }
 
+       // If hospital type is in the query string, add it to the search object
+       if (req.query.type) {
+              searchObject.hospital_type = {
+                     $regex: req.query.type,
+                     $options: "i",
+              };
+       }
+
        // If latitude, longitude, and distance is in the query string, add it to the search object
        if (req.query.lat && req.query.lon && req.query.dist) {
               // MongoDB wants our distance in meters.  The assignment has us passing in the miles.
