@@ -108,7 +108,9 @@ exports.post = async (req, res) => {
                      // Try saving post to MongoDB.  Otherwise, return a bad request.
                      try {
                             const savedPost = await post.save();
-                            res.status(resources.httpCodeOK).json(savedPost);
+                            res.status(resources.httpCodeCreated).json(
+                                   savedPost
+                            );
                      } catch (err) {
                             res.status(resources.httpCodeBadRequest).json({
                                    error: resources.httpStringBadRequest,
@@ -157,7 +159,9 @@ exports.put = async (req, res) => {
                      ).exec();
 
                      // If successful, return the data from the PUT.
-                     res.status(resources.httpCodeOK).json({ data: hospitals });
+                     res.status(resources.httpCodeCreated).json({
+                            data: hospitals,
+                     });
               } else {
                      res.status(resources.httpCodeBadRequest).json({
                             error: resources.httpStringBadRequest,

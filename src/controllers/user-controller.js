@@ -107,7 +107,9 @@ exports.post = async (req, res) => {
                      // Attempt to save our new User document
                      try {
                             const savedPost = await post.save();
-                            res.json({ data: savedPost });
+                            res.status(resources.httpCodeCreated).json({
+                                   data: savedPost,
+                            });
                      } catch (err) {
                             res.json({ error: err });
                             console.log(err);
