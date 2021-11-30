@@ -54,6 +54,7 @@ exports.read = async (req, res) => {
                      });
               }
        } catch (err) {
+              // If there are caught errors, send back a bad request
               res.status(resources.httpCodeBadRequest).json({
                      error: resources.httpStringBadRequest,
               });
@@ -74,11 +75,27 @@ exports.remove = async (req, res) => {
                      let searchObject = {};
                      searchObject = await getSearchObject(req);
 
-                     // With the search object, delete those hospitals matching the search criteria.
-                     const hospitals = await Hospital.deleteMany(
-                            searchObject
-                     ).exec();
-                     res.status(resources.httpCodeOK).json({ data: hospitals });
+                     // First, lets see if there is anything delete, based on the search object passed in
+                     const hospitals = await Hospital.find(searchObject).exec();
+                     if (hospitals && hospitals.length > 0) {
+                            // With the search object, delete those hospitals matching the search criteria.
+                            const hospitalsDelete = await Hospital.deleteMany(
+                                   searchObject
+                            ).exec();
+                            res.status(resources.httpCodeOK).json({
+                                   data: hospitalsDelete,
+                            });
+                     }
+                     // If there is nothing to delete, return that no resource was found
+                     else if (hospitals && hospitals.length === 0) {
+                            res.status(resources.httpCodeNotFound).json({
+                                   error: resources.httpStringNotFound,
+                            });
+                     } else {
+                            res.status(resources.httpCodeBadRequest).json({
+                                   error: resources.httpStringBadRequest,
+                            });
+                     }
               }
               // If the user isn't authenticated or doesn't have the correct admin permission,
               // return to the client that they aren't authorized.

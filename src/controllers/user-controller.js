@@ -158,12 +158,31 @@ exports.remove = async (req, res) => {
        try {
               if (isValidKey && permissionLevel === "ADMIN") {
                      if (Object.keys(req.query).length === 0) {
-                            try {
-                                   const removePost = await User.remove();
-                                   res.status(resources.httpCodeOK).json(
-                                          removePost
-                                   );
-                            } catch (err) {
+                            // First, lets see if there is anything to delete
+                            const users = await User.find();
+                            if (users && users.length > 0) {
+                                   try {
+                                          const removePost =
+                                                 await User.remove();
+                                          res.status(resources.httpCodeOK).json(
+                                                 removePost
+                                          );
+                                   } catch (err) {
+                                          res.status(
+                                                 resources.httpCodeBadRequest
+                                          ).json({
+                                                 error: resources.httpStringBadRequest,
+                                          });
+                                   }
+                            }
+                            // If there is nothing to delete, return that no resource was found
+                            else if (users && users.length === 0) {
+                                   res.status(resources.httpCodeNotFound).json({
+                                          error: resources.httpStringNotFound,
+                                   });
+                            }
+                            // Otherwise, return a bad request
+                            else {
                                    res.status(
                                           resources.httpCodeBadRequest
                                    ).json({
@@ -171,11 +190,35 @@ exports.remove = async (req, res) => {
                                    });
                             }
                      } else if (req.query.key) {
-                            const removePost = await User.deleteMany({
+                            // First, lets see if there is a key matching what's in the query string in
+                            // the collection
+                            const users = await User.find({
                                    api_key: req.query.key,
                             });
-                            res.status(resources.httpCodeOK).json(removePost);
-                     } else {
+
+                            // If something is found, delete those api keys in the user collection
+                            if (users && users.length > 0) {
+                                   const removePost = await User.deleteMany({
+                                          api_key: req.query.key,
+                                   });
+                                   res.status(resources.httpCodeOK).json(
+                                          removePost
+                                   );
+                            } else if (users && users.length === 0) {
+                                   res.status(resources.httpCodeNotFound).json({
+                                          error: resources.httpStringNotFound,
+                                   });
+                            } // Otherwise, return a bad request
+                            else {
+                                   res.status(
+                                          resources.httpCodeBadRequest
+                                   ).json({
+                                          error: resources.httpStringBadRequest,
+                                   });
+                            }
+                     }
+                     // Otherwise, return a bad request
+                     else {
                             res.status(resources.httpCodeBadRequest).json({
                                    error: resources.httpStringBadRequest,
                             });
