@@ -19,6 +19,7 @@ var corsOptions = {
        origin: "*",
 };
 
+// Added cors with options
 server.use(cors(corsOptions));
 
 server.use(express.json());
