@@ -13,6 +13,14 @@ const path = require("path");
  */
 const express = require("express");
 const server = express();
+
+const cors = require("cors");
+var corsOptions = {
+       origin: "*",
+};
+
+server.use(cors(corsOptions));
+
 server.use(express.json());
 server.use(express.urlencoded({ extended: false }));
 server.use(express.static(path.join(__dirname, "public")));

@@ -62,6 +62,14 @@ module.exports = async function (req) {
               };
        }
 
+       // If ownership is in the query string, add it to the search object
+       if (req.query.ownership) {
+              searchObject.hospital_ownership = {
+                     $regex: req.query.ownership,
+                     $options: "i",
+              };
+       }
+
        // If hospital type is in the query string, add it to the search object
        if (req.query.type) {
               searchObject.hospital_type = {
