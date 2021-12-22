@@ -1,3 +1,6 @@
+// Created by Tom Chiapete
+// Fall Semester 2021
+
 const User = require("../models/user-model");
 
 // A function that returns the permission level as it appears in the User collection

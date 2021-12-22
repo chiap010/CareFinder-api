@@ -1,3 +1,6 @@
+// Created by Tom Chiapete
+// Fall Semester 2021
+
 // Resources
 // Using a resources file so I don't have to hardcode a bunch of stuff in the code.
 
