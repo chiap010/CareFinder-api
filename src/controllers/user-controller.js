@@ -1,3 +1,6 @@
+// Created by Tom Chiapete
+// Fall Semester 2021
+
 const User = require("../models/user-model");
 const isValidAPIKey = require("../middleware/isValidAPIKey");
 const getPermissionLevel = require("../middleware/getPermissionLevel");

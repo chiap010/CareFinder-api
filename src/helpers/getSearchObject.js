@@ -1,3 +1,6 @@
+// Created by Tom Chiapete
+// Fall Semester 2021
+
 module.exports = async function (req) {
        // Declare a search object that we will build upon depending
        // on what we see in the query string.

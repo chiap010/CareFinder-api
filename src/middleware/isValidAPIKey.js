@@ -1,3 +1,6 @@
+// Created by Tom Chiapete
+// Fall Semester 2021
+
 const User = require("../models/user-model");
 
 // A function that checks to see if the user has a valid API key

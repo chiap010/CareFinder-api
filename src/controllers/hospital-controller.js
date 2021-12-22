@@ -1,3 +1,6 @@
+// Created by Tom Chiapete
+// Fall Semester 2021
+
 const Hospital = require("../models/hospital-model");
 const isValidAPIKey = require("../middleware/isValidAPIKey");
 const getPermissionLevel = require("../middleware/getPermissionLevel");

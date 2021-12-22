@@ -1,3 +1,6 @@
+// Created by Tom Chiapete
+// Fall Semester 2021
+
 /**
  * server.js - Set up a server
  * @type {Parsers|*}

@@ -1,3 +1,6 @@
+// Created by Tom Chiapete
+// Fall Semester 2021
+
 const express = require("express");
 const { catchErrors } = require("../middleware/error_handler");
 const userController = require("../controllers/user-controller");
